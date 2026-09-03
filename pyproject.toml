@@ -1,0 +1,79 @@
+[project]
+name = "course-tasks"
+version = "0.1.0"
+description = "Course environments and infrastructure for RL on NCSA Delta (mjlab / MuJoCo Warp)"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mjlab",
+    "torch",
+    # W&B is the course logger. wandb 0.29.0 (2026-08-26) removed the
+    # `start_method` setting that rsl_rl (5.4.2 and 5.5.0) still passes to
+    # wandb.init, which aborts every training run at start-up. mjlab's own
+    # lock uses 0.22.3; every release below 0.29 works.
+    "wandb>=0.22.3,<0.29",
+    # scripts/plot_rewards.py (reward-curve figure for the writeup) and
+    # scripts/hw0_checklist.py read TensorBoard event files / YAML.
+    "matplotlib",
+    "pyyaml",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.18,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Flat per-assignment layout: the hw0/ folder is both the handout and the
+# Python package (docs and figures inside it are harmless to the import).
+module-root = ""
+module-name = "hw0"
+
+# ---------------------------------------------------------------------------
+# CRITICAL: this is how our tasks show up in `uv run list-envs` / `train` /
+# `play`. mjlab scans the "mjlab.tasks" entry-point group at import time and
+# imports each listed package; importing `hw0` runs its register_mjlab_task()
+# calls. Each assignment is its own top-level package and its own line here.
+# If a student's task is "missing", check (1) this table, (2) hw0/__init__.py.
+# ---------------------------------------------------------------------------
+[project.entry-points."mjlab.tasks"]
+hw0 = "hw0"
+
+# ---------------------------------------------------------------------------
+# Package sources. Modeled on mujocolab/mjlab_playground. Course-side choices:
+#   * mjlab is pinned to a specific commit so the API the handouts describe
+#     is the API students get. Bump the rev intentionally, per-semester, and
+#     update the v1.6.0 docs links in the handout and the config file.
+#   * torch comes from PyPI's default resolution. On Delta (x86_64, A40) that
+#     is the CUDA-13 build (torch 2.13.0+cu130 in uv.lock), which needs an
+#     NVIDIA driver >= 580. STAFF: verify the driver on an A40 node before
+#     release (staff: see the Delta setup notes). If it is older, uncomment the
+#     cu128 block below and the matching index, pin Warp to the PyPI (CUDA 12)
+#     build by removing its "nvidia" source, then `uv lock && uv sync` on a
+#     login node and commit uv.lock. Every student resolves the identical
+#     environment from the committed lock.
+# ---------------------------------------------------------------------------
+[tool.uv.sources]
+mjlab = { git = "https://github.com/mujocolab/mjlab", rev = "0fb8a681136be94ffc636a3dd423cabb97d91f10" }  # v1.6.0
+warp-lang = { index = "nvidia", marker = "sys_platform != 'darwin'" }   # CUDA-13 Warp; drop this line for the CUDA-12 build
+# CUDA 12.8 fallback for Delta if its driver is < 580 (see the note above):
+# torch = { index = "pytorch-cu128", marker = "sys_platform == 'linux' and platform_machine == 'x86_64'" }
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.nvidia.com/"
+explicit = true
+
+# [[tool.uv.index]]
+# name = "pytorch-cu128"
+# url = "https://download.pytorch.org/whl/cu128"
+# explicit = true
+
+[tool.ruff]
+indent-width = 2
+src = ["hw0"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]

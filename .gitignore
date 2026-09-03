@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.pyc
+logs/
+runs/
+wandb/
+outputs/
+*.pt
+MUJOCO_LOG.TXT
+.DS_Store
+
+# HW0 deliverables are submitted through the course page, not committed
+hw0/hw0_checklist.md
+hw0/hw0_checklist.json
+hw0/reward_curves.png
+hw0/reward_curves.csv
+hw0/writeup.*
+
+# STAFF-ONLY BLOCK (the student export strips it): work files created from
+# *_starter.py by scripts/init_hw.sh are never committed here, so they can
+# never ship. Students DO commit them in their own mirror — that is why
+# this block must not reach the student .gitignore.
